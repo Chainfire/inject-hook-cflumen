@@ -5,7 +5,7 @@ useful in itself, this release is really about the injection and
 hooking code, with the *CF.lumen*-related code serving as an example of
 this.
 
-Library hooking and injection with support for:
+Library injection and function hooking with support for:
 - arm32
 - arm64
 - x86
