@@ -22,7 +22,9 @@ void _libhook_register(const char* name, uintptr_t* original, uintptr_t hook);
 void libhook_log(const char* log_tag);
 
 // Hook all REGISTERHOOK'd hooks
-void libhook_hook();
+// Test if you actually need the parameters set to 1, using 0 is safer if it actually works,
+// as these are brute-force methods that have a small chance of data corruption
+void libhook_hook(int patch_module_ro, int patch_module_rw);
 
 // HOOKLOG( "some message %d %d %d", 1, 2, 3 );
 #define HOOKLOG( F, ... ) \

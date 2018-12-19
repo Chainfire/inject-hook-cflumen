@@ -832,7 +832,7 @@ void hook() {
     REGISTERHOOKPP("_ZN7android17BnSurfaceComposer10onTransactEjRKNS_6ParcelEPS1_j", onTransact);
 
     libhook_log(LOG_TAG);
-    libhook_hook();
+    libhook_hook(1, 1);
 
     setup();
     updateSettings();
