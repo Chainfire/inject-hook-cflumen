@@ -41,10 +41,16 @@
 #endif
 
 #if defined(__LP64__)
+#define PATH_LINKER_BIONIC "/bionic/bin/linker64"
+#define PATH_LIBDL_BIONIC "/bionic/lib64/libdl.so"
+#define PATH_LIBC_BIONIC "/bionic/lib64/libc.so"
 #define PATH_LINKER "/system/bin/linker64"
 #define PATH_LIBDL "/system/lib64/libdl.so"
 #define PATH_LIBC "/system/lib64/libc.so"
 #else
+#define PATH_LINKER_BIONIC "/bionic/bin/linker"
+#define PATH_LIBDL_BIONIC "/bionic/lib/libdl.so"
+#define PATH_LIBC_BIONIC "/bionic/lib/libc.so"
 #define PATH_LINKER "/system/bin/linker"
 #define PATH_LIBDL "/system/lib/libdl.so"
 #define PATH_LIBC "/system/lib/libc.so"
@@ -537,19 +543,26 @@ int libinject_inject(pid_t pid, char* library) {
 
         /* We can resolve the references to LIBC easily, but dl* is tricky. On older Android
          * versions, libdl.so is commonly not loaded by the linker, and our dl* functions
-         * come directly from the linker. On newer Android versions, libdl.so is directly loaded
-         * and dl* come from there.
+         * come directly from the linker.
+         *
+         * On newer Android versions, libdl.so is directly loaded and dl* come from there.
+         *
+         * On even newer Android versions, the linker/libc/libdl have moved from /system to /bionic
          */
-        _calloc = remote_findFunction( PATH_LIBC, (void *) calloc );
-        _free = remote_findFunction( PATH_LIBC, (void *) free );
-        if ((findLibrary( PATH_LIBDL, -1 ) != 0) && (findLibrary( PATH_LIBDL, _pid ) != 0)) {
-            void* handle = dlopen( PATH_LIBDL, RTLD_LAZY );
-            _dlopen = remote_findFunction( PATH_LIBDL, dlsym( handle, "dlopen" ) );
-            _dlerror = remote_findFunction( PATH_LIBDL, dlsym( handle, "dlerror" ) );
+        const char* libc = access( PATH_LIBC_BIONIC, R_OK ) == 0 ? PATH_LIBC_BIONIC : PATH_LIBC;
+        const char* libdl = access( PATH_LIBDL_BIONIC, R_OK ) == 0 ? PATH_LIBDL_BIONIC : PATH_LIBDL;
+        const char* linker = access( PATH_LINKER_BIONIC, R_OK ) == 0 ? PATH_LINKER_BIONIC : PATH_LINKER;
+        
+        _calloc = remote_findFunction( libc, (void *) calloc );
+        _free = remote_findFunction( libc, (void *) free );
+        if ((findLibrary( libdl, -1 ) != 0) && (findLibrary( libdl, _pid ) != 0)) {
+            void* handle = dlopen( libdl, RTLD_LAZY );
+            _dlopen = remote_findFunction( libdl, dlsym( handle, "dlopen" ) );
+            _dlerror = remote_findFunction( libdl, dlsym( handle, "dlerror" ) );
             dlclose( handle );
         } else {
-            _dlopen = remote_findFunction( PATH_LINKER, (void *) dlopen );
-            _dlerror = remote_findFunction( PATH_LINKER, (void *) dlerror );
+            _dlopen = remote_findFunction( linker, (void *) dlopen );
+            _dlerror = remote_findFunction( linker, (void *) dlerror );
         }
 
         INJECTLOG( "calloc:%p free:%p dlopen:%p dlerror:%p", (void*)_calloc, (void*)_free, (void*)_dlopen, (void*)_dlerror );
