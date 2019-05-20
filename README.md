@@ -89,6 +89,9 @@ Comments are sparse, but if you're messing with injecting and hooking,
 you should be at the level where you can read and understand the code
 itself. If not, this is the time to learn.
 
+Update: I elaborate some more on how the injector works in the
+[injectvm-binderjack repo](https://github.com/Chainfire/injectvm-binderjack).
+
 ## Sources: *CF.lumen* *performance* driver
 
 As stated earlier, this serves more of a working example on how to
